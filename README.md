@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Christmas Tree</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: radial-gradient(circle at center, #0f1419 0%, #0313f3 100%);
+            perspective: 1200px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: 0.3;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .tree {
+            position: relative;
+            height: 70vmin;
+            width: 40vmin;
+            transform-style: preserve-3d;
+            animation: spin 12s infinite linear;
+        }
+
+        .tree__trunk {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 3vmin;
+            height: 12vmin;
+            background: linear-gradient(to top, #4a3526, #6b4d3a);
+            border-radius: 1vmin;
+        }
+
+        .tree__branch {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-left: var(--size) solid transparent;
+            border-right: var(--size) solid transparent;
+            border-bottom: calc(var(--size) * 1.5) solid #65f306;
+            transform-style: preserve-3d;
+            transform: translateX(-50%) translateY(calc(var(--y) * 1vmin)) rotateY(calc(var(--rotate) * 1deg));
+            filter: brightness(var(--brightness, 1));
+        }
+
+        .tree__star {
+            position: absolute;
+            top: -5vmin;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10vmin;
+            height: 10vmin;
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            box-shadow: 0 0 20px #ffd700, 0 0 40px #ffd700;
+            animation: starPulse 2s infinite ease-in-out;
+        }
+
+        .tree__light {
+            transform-style: preserve-3d;
+            position: absolute;
+            height: 2.5vmin;
+            width: 1.5vmin;
+            border-radius: 50%;
+            transform: translate(-50%, 50%) rotateY(calc(var(--rotate, 0) * 1deg));
+            bottom: calc(var(--y, 0) * 1%);
+            left: 50%;
+            box-shadow: 0 0 15px currentColor, 0 0 30px currentColor, 0 0 45px currentColor;
+            animation: twinkle 2s infinite ease-in-out;
+            animation-delay: calc(var(--delay, 0) * 0.1s);
+        }
+
+        .snowflake {
+            position: absolute;
+            color: white;
+            font-size: 3.5vmin;
+            opacity: 0.8;
+            animation: fall linear infinite;
+            animation-duration: calc(var(--duration) * 1s);
+            animation-delay: calc(var(--delay) * 1s);
+            left: calc(var(--x) * 1vw);
+            top: -5vmin;
+        }
+
+        .message {
+            position: absolute;
+            inset-block-end: 10vh;
+            inset-inline-start: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            color: #f2f5ef;
+            font-family: 'Georgia', serif;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.6);
+            animation: messageGlow 3s infinite ease-in-out;
+            z-index: 10;
+        }
+
+        .message h1 {
+            margin: 5.5rem 0;
+            font-size: 10vmin;
+            font-weight: bold;
+        }
+
+        .message .jamhuri {
+            color: #ff0000;
+        }
+
+        .message .christmas {
+            color: #00ff00;
+        }
+
+        .message .newyear {
+            color: #ffd700;
+        }
+
+        .sidebar {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 22%;
+            padding: 20px;
+            z-index: 5;
+            overflow-y: auto;
+        }
+         
+        .sidebar.left {
+            left: 0;
+        }
+
+        .sidebar.right {
+            right: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* SGS Kenya Card Styles */
+        .sgs-card {
+            background: rgb(247, 243, 243);
+            border-radius: 55px;
+            padding: 100px 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            position: relative;
+            border: 3px solid #d4af37;
+            animation: fadeIn 1s ease-in;
+            margin-top: 80px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .ornament {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            animation: swing 3s ease-in-out infinite;
+        }
+
+        .ornament.top-left {
+            top: -15px;
+            left: 20px;
+            background: linear-gradient(135deg, #ff6b6b, #c92a2a);
+        }
+
+        .ornament.top-right {
+            top: -15px;
+            right: 20px;
+            background: linear-gradient(135deg, #ffd700, #d4af37);
+        }
+
+        @keyframes swing {
+            0%, 100% {
+                transform: rotate(-5deg);
+            }
+            50% {
+                transform: rotate(5deg);
+            }
+        }
+
+        .sgs-card h1 {
+            font-size: 3.8em;
+            color: #1a472a;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            font-family: 'Georgia', serif;
+        }
+
+        .highlight {
+            color: #c92a2a;
+            font-weight: bold;
+        }
+
+        .sgs-card p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #333;
+            margin-bottom: 15px;
+            font-family: 'Georgia', serif;
+        }
+
+        .star {
+            color: #ffd700;
+            font-size: 1.5em;
+            margin: 15px 0;
+            animation: twinkleStar 2s ease-in-out infinite;
+        }
+
+        @keyframes twinkleStar {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(1.2);
+            }
+        }
+
+        .signature {
+            margin-top: 20px;
+            font-style: italic;
+            color: #555;
+            font-size: 0.95em;
+        }
+
+        /* Right sidebar gallery (8 photos) */
+        .sidebar.right .gallery-right {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            padding: 10px 0 20px 0;
+        }
+
+        .sidebar.right .gallery-right .photo-slot {
+            width: 100%;
+            height: 200px;
+            border-radius: 90px;
+            box-shadow: 0 8px 18px rgba(58, 39, 39, 0.18);
+            transition: transform 15ms ease, box-shadow 150ms ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar.right .gallery-right .photo-slot img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .sidebar.right .gallery-right .photo-slot.has-image img {
+            display: block;
+        }
+
+        .sidebar.right .gallery-right .photo-slot:hover {
+            transform: translateY(-4px) scale(1.03);
+            box-shadow: 0 16px 28px rgba(12, 12, 12, 0.863);
+        }
+
+        .sidebar.right .gallery-right .photo-slot .placeholder {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 3em;
+            pointer-events: none;
+        }
+
+        .sidebar.right .gallery-right .photo-slot.has-image .placeholder {
+            display: none;
+        }
+
+
+
+        .upload-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: linear-gradient(135deg, #c92a2a, #ff6b6b);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .upload-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .lights {
+            position: absolute;
+            top: 10px;
+            left: 0;
+            right: 0;
+            height: 15px;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .light {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: blink 1.5s infinite;
+        }
+
+        .light:nth-child(1) {
+            background: #ff6b6b;
+            animation-delay: 0s;
+        }
+
+        .light:nth-child(2) {
+            background: #ffd700;
+            animation-delay: 0.3s;
+        }
+
+        .light:nth-child(3) {
+            background: #51cf66;
+            animation-delay: 0.6s;
+        }
+
+        .light:nth-child(4) {
+            background: #4dabf7;
+            animation-delay: 0.9s;
+        }
+
+        .light:nth-child(5) {
+            background: #ff6b6b;
+            animation-delay: 1.2s;
+        }
+
+        .light:nth-child(6){
+            background: #ffd700;
+            animation-delay: 1.5s;
+        }
+
+        .light:nth-child(7){
+            background: #51cf66;
+            animation-delay: 1.8s;
+        }
+
+        @keyframes blink {
+            0%, 100% {
+                opacity: 1;
+                box-shadow: 0 0 8px currentColor;
+            }
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        @keyframes spin {
+            from { transform: rotateY(0deg); }
+            to { transform: rotateY(360deg); }
+        }
+
+        @keyframes twinkle {
+            0%, 100% {
+                opacity: 1;
+                transform: translate(-50%, 50%) rotateY(calc(var(--rotate, 0) * 1deg)) scale(1);
+            }
+            50% {
+                opacity: 0.3;
+                transform: translate(-50%, 50%) rotateY(calc(var(--rotate, 0) * 1deg)) scale(0.7);
+            }
+        }
+
+        @keyframes starPulse {
+            0%, 100% {
+                transform: translateX(-50%) scale(1);
+                filter: brightness(1);
+            }
+            50% {
+                transform: translateX(-50%) scale(1.2);
+                filter: brightness(1.5);
+            }
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(110vh) rotate(360deg);
+            }
+        }
+
+        @keyframes messageGlow {
+            0%, 100% {
+                text-shadow: 0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.6);
+            }
+            50% {
+                text-shadow: 0 0 20px rgba(255, 215, 0, 1), 0 0 40px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 215, 0, 0.6);
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+        📸 Add Photos
+    </button>
+    <input type="file" id="fileInput" accept="image/*" multiple>
+
+    <div class="tree" id="tree">
+        <div class="tree__star"></div>
+    </div>
+
+    <div class="sidebar left">
+        <div class="sgs-card">
+            <div class="lights">
+                <div class="light"></div>
+                <div class="light"></div>
+                <div class="light"></div>
+                <div class="light"></div>
+                <div class="light"></div>
+                <div class="light"></div>
+                <div class="light"></div>
+            </div>
+            
+            <div class="ornament top-left"></div>
+            <div class="ornament top-right"></div>
+            
+            <h1>🎄 Happy Festive Season! 🎄</h1>
+            
+            <p>
+                To the amazing team at <span class="highlight">SGS Kenya</span>!
+            </p>
+            
+            <div class="star">✨ ⭐ ✨</div>
+            
+            <p>
+                Wishing you joy, laughter, and quality time with your loved ones.
+            </p>
+            
+            <p>
+                Thanks for being such an inspiring team—cheers to a fantastic year ahead!
+            </p>
+            
+            <div class="signature">
+                With warm wishes 🎁
+            </div>
+        </div>
+    </div>
+
+    <div class="message">
+        <h1 class="jamhuri">Happy Jamhuri Day</h1>
+        <h1 class="christmas">Merry Christmas</h1>
+        <h2 class="and">And</h2>
+        <h1 class="newyear">A Happy New Year</h1>
+    </div>
+
+    <div class="sidebar right content">
+        <div class="gallery-right" id="gallery">
+            <div class="photo-slot"><span class="placeholder">📷</span><img alt="Photo 1"></div>
+            <div class="photo-slot"><span class="placeholder">📷</span><img alt="Photo 2"></div>
+            <div class="photo-slot"><span class="placeholder">📷</span><img alt="Photo 3"></div>
+            <div class="photo-slot"><span class="placeholder">📷</span><img alt="Photo 4"></div>
+            <div class="photo-slot"><span class="placeholder">📷</span><img alt="Photo 5"></div>
+            <div class="photo-slot"><span class="placeholder">📷</span><img alt="Photo 6"></div>
+            <div class="photo-slot"><span class="placeholder">📷</span><img alt="Photo 7"></div>
+            <div class="photo-slot"><span class="placeholder">📷</span><img alt="Photo 8"></div>
+        </div>
+    </div>
+
+    <script>
+        const tree = document.getElementById('tree');
+        const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ff8800', '#ffffff'];
+        
+        // Create tree trunk
+        const trunk = document.createElement('div');
+        trunk.className = 'tree__trunk';
+        tree.appendChild(trunk);
+        
+        // Create layered branches (spiral effect)
+        const layers = 12;
+        for (let i = 0; i < layers; i++) {
+            const branchesPerLayer = 8;
+            for (let j = 0; j < branchesPerLayer; j++) {
+                const branch = document.createElement('div');
+                branch.className = 'tree__branch';
+                
+                const size = (12 - i) * 1.5;
+                const yPos = 8 + (i * 3.5);
+                const rotation = (j * (360 / branchesPerLayer)) + (i * 15);
+                const brightness = 0.7 + (Math.random() * 0.3);
+                
+                branch.style.setProperty('--size', size + 'vmin');
+                branch.style.setProperty('--y', yPos);
+                branch.style.setProperty('--rotate', rotation);
+                branch.style.setProperty('--brightness', brightness);
+                
+                tree.appendChild(branch);
+            }
+        }
+        
+        // Create spiral lights
+        for (let i = 0; i < 80; i++) {
+            const light = document.createElement('div');
+            light.className = 'tree__light';
+            
+            const rotate = (i * 30) % 360;
+            const y = 15 + ((i / 80) * 80);
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            
+            light.style.setProperty('--rotate', rotate);
+            light.style.setProperty('--y', y);
+            light.style.setProperty('--delay', i % 10);
+            light.style.backgroundColor = color;
+            light.style.color = color;
+            
+            tree.appendChild(light);
+        }
+
+        // Create snowflakes
+        for (let i = 0; i < 30; i++) {
+            const snowflake = document.createElement('div');
+            snowflake.className = 'snowflake';
+            snowflake.textContent = '❄';
+            snowflake.style.setProperty('--x', Math.random() * 100);
+            snowflake.style.setProperty('--duration', 8 + Math.random() * 8);
+            snowflake.style.setProperty('--delay', Math.random() * 5);
+            document.body.appendChild(snowflake);
+        }
+
+        // Photo upload functionality with persistent storage
+        const fileInput = document.getElementById('fileInput');
+        const photoSlots = document.querySelectorAll('.photo-slot');
+
+        // Load saved photos on page load
+        async function loadPhotos() {
+            try {
+                for (let i = 0; i < 8; i++) {
+                    const result = await window.storage.get(`photo_${i}`, true);
+                    if (result && result.value) {
+                        const img = photoSlots[i].querySelector('img');
+                        img.src = result.value;
+                        photoSlots[i].classList.add('has-image');
+                    }
+                }
+            } catch (error) {
+                console.log('No saved photos found or error loading:', error);
+            }
+        }
+
+        // Save photos when uploaded
+        fileInput.addEventListener('change', async function(e) {
+            const files = Array.from(e.target.files).slice(0, 8);
+            
+            for (let index = 0; index < files.length && index < photoSlots.length; index++) {
+                const file = files[index];
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = async function(event) {
+                        const img = photoSlots[index].querySelector('img');
+                        img.src = event.target.result;
+                        photoSlots[index].classList.add('has-image');
+                        
+                        // Save to shared storage so all users can see it
+                        try {
+                            await window.storage.set(`photo_${index}`, event.target.result, true);
+                        } catch (error) {
+                            console.error('Error saving photo:', error);
+                        }
+                    };
+                    
+                    reader.readAsDataURL(file);
+                }
+            }
+        });
+
+        // Load photos when page loads
+        loadPhotos();
+    </script>
+</body>
+</html>
